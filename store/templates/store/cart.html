@@ -1,0 +1,29 @@
+{% extends "store/base.html" %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<h1>Корзина</h1>
+
+{% if products %}
+    <table>
+        <tr>
+            <th>Товар</th>
+            <th>Количество</th>
+            <th>Цена</th>
+            <th>Сумма</th>
+        </tr>
+        {% for item in products %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.product.price }} ₽</td>
+            <td>{{ item.subtotal }} ₽</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h3>Итого: {{ total }} ₽</h3>
+{% else %}
+    <p>Корзина пуста.</p>
+{% endif %}
+{% endblock %}
