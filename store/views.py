@@ -33,27 +33,25 @@ def add_to_cart(request,product_id):
         cart[str(product_id)] = 1
 
     request.session['cart'] = cart
+    request.session.modified = True
 
     return redirect('cart_view')
 
 def cart_view(request):
-    cart = request.session.get('cart',{})
-    products = []
-    total = 0
+    print("=== cart_view ТЕСТ ===")
 
-    for product_id,quantity in cart.items():
-        product = Product.objects.get(id=product_id)
-        products.append({
-            'product': product,
-            'quantity':quantity,
-            'subtotal':product.price * quantity,
-        })
+    # Простейшие статические данные
+    context = {
+        'products': [
+            {
+                'product': {'name': 'iPhone 15', 'price': 120000},
+                'quantity': 1,
+                'subtotal': 120000,
+            }
+        ],
+        'total': 120000,
+    }
 
-        total += product.price * quantity
-
-    return render(request, 'store/cart.html',{
-        'products':products,
-        'total':total,
-    })
+    return render(request, 'store/cart.html', context)
 
 # Create your views here.
