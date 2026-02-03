@@ -6,7 +6,7 @@
 <h1>Корзина</h1>
 
 {% if products %}
-    <table>
+    <table class="cart-table">
         <thead>
             <tr>
                 <th>Товар</th>
@@ -22,18 +22,21 @@
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.product.price }} ₽</td>
                 <td>{{ item.subtotal }} ₽</td>
-
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
     <div class="cart-total">
-        <h3>Итого: {{ total }} ₽</h3>
+        <h3>Итого: <span class="total-amount">{{ total }} ₽</span></h3>
 
-        <a href="{% url 'product_list' %}">← Продолжить покупки</a>
+        <div class="cart-actions">
+            <a href="{% url 'product_list' %}" class="btn-continue">← Продолжить покупки</a>
+        </div>
     </div>
 {% else %}
-    <p class="empty-cart">Корзина пуста. <a href="{% url 'product_list' %}">Вернуться к покупкам</a></p>
+    <div class="empty-cart">
+        <p>Корзина пуста. <a href="{% url 'product_list' %}">Вернуться к покупкам</a></p>
+    </div>
 {% endif %}
 {% endblock %}

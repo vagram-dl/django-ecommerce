@@ -1,28 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-
     <meta charset="UTF-8">
-    <meta name = "viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %} Магазин{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Магазин{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-     <header>
-         <h1>Мини интернет-магазин</h1>
-         <nav>
-             <a href="/">Главная</a>
-         </nav>
-     </header>
+    <header>
+        <h1>TechShop</h1>
+        <nav>
+            <a href="/">Главная</a>
+            <a href="{% url 'product_list' %}">Каталог</a>
+            <a href="{% url 'cart_view' %}">Корзина</a>
+            <a href="#">Заказы</a>
+            <a href="#">Профиль</a>
+        </nav>
 
-     <main>
-         {% block content %}{% endblock %}
-     </main>
+    </header>
 
-     <footer>
-         <p>© 2026 Мини интернет-магазин</p>
-     </footer>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
+    <footer>
+        <p>&copy; 2026 TechShop</p>
+    </footer>
 </body>
 </html>
