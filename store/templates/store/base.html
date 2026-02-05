@@ -6,6 +6,7 @@
     <title>{% block title %}Магазин{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <header>
@@ -16,6 +17,14 @@
             <a href="{% url 'cart_view' %}">Корзина</a>
             <a href="#">Заказы</a>
             <a href="#">Профиль</a>
+
+            {% if user.is_authenticated %}
+                <span> Привет, {{user.username}}!</span>
+                <a href="{% url 'logout' %}">Выход</a>
+            {% else %}
+                <a href="{% url 'login' %}">Вход</a>
+                <a href="{% url 'register' %}">Регистрация</a>
+            {% endif %}
         </nav>
 
     </header>
