@@ -37,7 +37,7 @@ def product_list(request):
         products = products.filter(price__gte=min_price)
 
     if max_price:
-        products = products.filter(price__gte=max_price)
+        products = products.filter(price__lte=max_price)
     return render(request,'store/product_list.html', {'products': products})
 
 def product_detail(request,pk):

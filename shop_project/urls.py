@@ -20,11 +20,15 @@ from django.contrib import admin
 from django.urls import path,include
 from store import views
 from django.conf.urls.static import static
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("Главное меню сайта")
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',include('store.urls')),
+    path('api/',include('store.urls')),
     path('',views.product_list,name = 'product_list'),
     path('products/', views.product_list, name='product_list'),
     path('products/<int:pk>/',views.product_detail,name='product_detail'),
