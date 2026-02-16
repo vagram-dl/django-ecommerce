@@ -119,3 +119,81 @@ class ProductViewSetTestCase(APITestCase):
         self.assertEqual(response.data['name'],'Oolong Tea')
         self.assertEqual(response.data['price'],'350.00')
 
+    def test_create_product_as_regular_user_forbidden(self):
+        self.client.force_authenticate(user=self.user)
+
+        new_product = {
+            'name':'Oolong Tea',
+            'price':'350.00',
+            'category':self.category_tea.id
+        }
+
+        response = self.client.post(self.products_url,new_product,format='json')
+        self.assertEqual(response.status_code,status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Product.objects.count(),2)
+
+    def test_create_product_unauthenticated_forbidden(self):
+        new_product = {
+            'name' : 'Oolong Tea',
+            'price':'350.00',
+            'category':self.category_tea.id
+        }
+
+        response = self.client.post(self.products_url,new_product,format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(Product.objects.count(),2)
+
+    def test_create_product_invalid_data_empty_name(self):
+        self.client.force_authenticate(user=self.admin_user)
+
+        invalid_product={
+            'name':'',
+            'price':'350.00',
+            'category':self.category_tea.id
+        }
+
+        response = self.client.post(self.products_url,invalid_product,format='json')
+        self.assertEqual(response.status_code,status.HTTP_400_BAD_REQUEST)
+        self.assertIn('name',response.data)
+
+        invalid_product_2={
+            'name':'Oolong Tea',
+            'price':'not_a_number',
+            'category':self.category_tea.id
+        }
+
+        response = self.client.post(self.products_url,invalid_product_2,format='json')
+        self.assertEqual(response.status_code,status.HTTP_400_BAD_REQUEST)
+        self.assertIn('price',response.data)
+
+        invalid_product_3={
+            'name':'Oolong Tea',
+            'price' :'350.00',
+            'category':9999
+        }
+
+        response = self.client.post(self.products_url,invalid_product_3,format='json')
+        self.assertEqual(response.status_code,status.HTTP_400_BAD_REQUEST)
+        self.assertIn('category',response.data)
+
+        self.assertEqual(Product.objects.count(),2)
+
+    def test_update_product_as_admin(self):
+        self.client.force_authenticate(user=self.admin_user)
+        update_data={
+            'name':'Premium Tea',
+            'price':'299.99'
+        }
+
+        url = reverse('product-detail',args=[self.product1.id])
+        response = self.client.patch(url,update_data,format='json')
+        self.assertEqual(response.status_code,status.HTTP_200_OK)
+
+        self.product1.refresh_from_db()
+        self.assertEqual(self.product1.name,'Premium Tea')
+        self.assertEqual(self.product1.price,Decimal('299.99'))
+
+        self.assertEqual(self.product1.category,self.category_tea)
+
+        self.assertEqual(response.data['name'],'Premium Tea')
+        self.assertEqual(response.data['price'],'299.99')
