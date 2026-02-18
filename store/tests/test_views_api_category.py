@@ -97,3 +97,64 @@ class CategoryViewSetTestCase(APITestCase):
         response = self.client.post(self.categories_url,new_category,format = 'json')
         self.assertEqual(response.status_code,status.HTTP_403_FORBIDDEN)
         self.assertEqual(Category.objects.count(),3)
+
+    def test_update_category_as_admin(self):
+        self.client.force_authenticate(user=self.admin_user)
+
+        update_data = {
+            'name' : 'Premium Tea',
+            'description':'High quality tea'
+        }
+
+        url = reverse('category-detail',args=[self.category_tea.id])
+        response = self.client.patch(url,update_data,format='json')
+
+        self.assertEqual(response.status_code,status.HTTP_200_OK)
+        self.category_tea.refresh_from_db()
+        self.assertEqual(self.category_tea.name, 'Premium Tea')
+        self.assertEqual(self.category_tea.description, 'High quality tea')
+        self.assertEqual(self.category_tea.slug,'tea')
+
+        self.assertEqual(response.data['name'],'Premium Tea')
+        self.assertEqual(response.data['description'],'High quality tea')
+
+    def test_update_category_as_regular_user_forbidden(self):
+        self.client.force_authenticate(user=self.user)
+        update_data = {
+            'name' : 'Hacked Tea'
+        }
+
+        url = reverse('category-detail',args=[self.category_tea.id])
+        response = self.client.patch(url,update_data,format='json')
+
+        self.assertEqual(response.status_code,status.HTTP_403_FORBIDDEN)
+
+        self.category_tea.refresh_from_db()
+        self.assertEqual(self.category_tea.name,'Tea')
+
+    def test_delete_category_as_admin(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('category-detail',args=[self.category_coffee.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code,status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Category.objects.count(),2)
+        with self.assertRaises(Category.DoesNotExist):
+            Category.objects.get(id=self.category_coffee.id)
+
+    def test_delete_category_as_regular_user_forbidden(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('category-detail',args=[self.category_coffee.id])
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code,status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Category.objects.count(),3)
+
+    def test_delete_category_with_children(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('category-detail',args=[self.category_tea.id])
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code,status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Category.objects.count(),1)
+        with self.assertRaises(Category.DoesNotExist):
+            Category.objects.get(id=self.category_green_tea.id)
