@@ -1,10 +1,13 @@
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework.decorators import permission_classes
 from rest_framework.test import APITestCase,APIClient
 from rest_framework import status
 from django.contrib.auth.models import User
 from store.models import Category, Product
 from decimal import Decimal
+from rest_framework.permissions import IsAuthenticated,IsAdminUser,AllowAny
+
 
 class ProductViewSetTestCase(APITestCase):
     def setUp(self):
