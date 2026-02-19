@@ -63,21 +63,42 @@ def add_to_cart(request,product_id):
 
     return redirect('cart_view')
 
-def cart_view(request):
-    print("=== cart_view ТЕСТ ===")
+def remove_from_cart(request,product_id):
+    cart = request.session.get('cart',{})
+    if str(product_id) in cart:
+        del cart[str(product_id)]
+    request.session['cart'] = cart
+    request.session.modified = True
 
-    # Простейшие статические данные
+    return redirect('cart_view')
+
+
+def cart_view(request):
+    cart = request.session.get('cart', {})
+
+    products_in_cart = []
+    total = 0
+
+    for product_id, quantity in cart.items():
+        try:
+            product = Product.objects.get(id=product_id)
+            subtotal = product.price * quantity
+            products_in_cart.append({
+                'product': product,
+                'quantity': quantity,
+                'subtotal': subtotal
+            })
+            total += subtotal
+        except Product.DoesNotExist:
+            continue
+
     context = {
-        'products': [
-            {
-                'product': {'name': 'iPhone 15', 'price': 120000},
-                'quantity': 1,
-                'subtotal': 120000,
-            }
-        ],
-        'total': 120000,
+        'products': products_in_cart,
+        'total': total,
     }
 
     return render(request, 'store/cart.html', context)
+
+
 
 # Create your views here.

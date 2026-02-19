@@ -1,3 +1,5 @@
+from os import remove
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -42,3 +44,30 @@ class CartViewTests(TestCase):
 
         self.assertIn(str(self.product1.id),cart)
         self.assertEqual(cart[str(self.product1.id)],2)
+        
+    def test_cart_view_with_products(self):
+        self.client.post(self.add_to_cart_url)
+        self.client.post(reverse('add_to_cart',args=[self.product2.id]))
+
+        response = self.client.get(self.cart_url)
+        self.assertEqual(response.status_code,200)
+        self.assertIn('products',response.context)
+        self.assertIn('total',response.context)
+
+        self.assertContains(response,'Green Tea')
+        self.assertContains(response,'Black Tea')
+
+    def test_remove_from_cart(self):
+        self.client.post(self.add_to_cart_url)
+        session = self.client.session
+        cart = session.get('cart',{})
+        self.assertIn(str(self.product1.id),cart)
+
+        remove_url = reverse('remove_from_cart',args=[self.product1.id])
+        response = self.client.post(remove_url)
+
+        self.assertRedirects(response,self.cart_url)
+
+        session = self.client.session
+        cart = session.get('cart',{})
+        self.assertNotIn(str(self.product1.id),cart)
