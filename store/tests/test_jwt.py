@@ -55,4 +55,30 @@ class JWTAuthTests(APITestCase):
 
         response = self.client.post(self.token_url,data,format = 'json')
         self.assertEqual(response.status_code,status.HTTP_401_UNAUTHORIZED)
+        
+    def test_refresh_token_valid(self):
+        auth_data = {
+            'username' : 'testuser',
+            'password' : 'testpass123'
+        }
+
+        auth_response = self.client.post(self.token_url,auth_data,format='json')
+        refresh_token = auth_response.data['refresh']
+
+        refresh_data = {
+            'refresh':refresh_token
+        }
+
+        response = self.client.post(self.token_refresh_url,refresh_data,format='json')
+        self.assertEqual(response.status_code,status.HTTP_200_OK)
+        self.assertIn('access',response.data)
+        self.assertNotIn('refresh',response.data)
+
+    def test_refresh_token_invalid(self):
+        refresh_data = {
+            'refresh' : 'invalid.token.string'
+        }
+
+        response = self.client.post(self.token_refresh_url,refresh_data,format='json')
+        self.assertEqual(response.status_code,status.HTTP_401_UNAUTHORIZED)
 
