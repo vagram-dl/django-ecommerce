@@ -34,7 +34,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         elif self.action in ['update','partial_update']:
             permission_classes = [IsAdminUser]
         elif self.action in ['destroy']:
-            permission_class = [IsAdminUser]
+            permission_classes = [IsAdminUser]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]

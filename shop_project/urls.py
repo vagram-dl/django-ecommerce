@@ -19,6 +19,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 from store import views
 from django.conf.urls.static import static
@@ -29,6 +30,9 @@ def index(request):
 
 
 urlpatterns = [
+    path('api/schema/',SpectacularAPIView.as_view(),name='schema'),
+    path('api/docs/',SpectacularSwaggerView.as_view(url_name='schema')),
+    path('api/redoc/',SpectacularRedocView.as_view(url_name="schema")),
     path('admin/', admin.site.urls),
     path('api/',include('store.urls')),
     path('api/token/',TokenObtainPairView.as_view(),name = 'token_obtain_pair'),

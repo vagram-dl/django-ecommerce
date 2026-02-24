@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'store',
     'rest_framework',
+    'drf_spectacular',
+    'drf_spectacular_sidecar'
 ]
 
 MIDDLEWARE = [
@@ -135,6 +137,7 @@ LOGIN_REDIRECT_URL = '/products/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS':'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS' : ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
