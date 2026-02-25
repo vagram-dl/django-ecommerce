@@ -29,3 +29,62 @@ class CartEdgeCaseTests(TestCase):
 
         response = self.client.get(self.cart_url)
         self.assertEqual(response.status_code,200)
+
+class AuthEdgeCaseTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = 'testuser',
+            password = 'testpass123'
+        )
+
+        self.profile_url = reverse('profile')
+        self.login_url = reverse('login')
+        self.client = Client()
+
+    def test_401_vs_403_profile(self):
+        response = self.client.get(self.profile_url)
+        self.assertEqual(response.status_code,302)
+        self.assertIn('login',response.url)
+
+        self.client.login(username='testuser',password='testpass123')
+        response = self.client.get(self.profile_url)
+        self.assertEqual(response.status_code,200)
+
+    def test_login_wrong_password(self):
+        response = self.client.post(self.login_url,{
+            'username' : 'testuser',
+            'password' : 'wrongpassword'
+        })
+
+        self.assertEqual(response.status_code,200)
+        self.assertTemplateUsed(response,'store/login.html')
+        self.assertContains(response,'Please enter a correct username and password')
+        self.assertTrue(response.context['form'].errors)
+
+    def test_login_empty_username(self):
+        response = self.client.post(self.login_url,{
+            'username' : '',
+            'password':'testpass123'
+        })
+
+        self.assertEqual(response.status_code,200)
+        self.assertContains(response,'This field is required')
+
+    def test_login_long_username(self):
+        long_username = 'a' * 500
+        response = self.client.post(self.login_url,{
+            'username':long_username,
+            'password':'testpass123'
+        })
+
+        self.assertEqual(response.status_code,200)
+        self.assertTrue(response.context['form'].errors)
+
+    def test_login_special_chars(self):
+        response = self.client.post(self.login_url,{
+            'username' : 'testuser',
+            'password' : '!@#$%^&*()'
+        })
+
+        self.assertEqual(response.status_code,200)
+        self.assertContains(response,'Please enter a correct username and password')
