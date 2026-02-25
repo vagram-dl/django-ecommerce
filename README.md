@@ -13,6 +13,7 @@ source .venv/bin/activate #Linux
 pip install -r requirements.txt
 
 ## Документация API
+- [http://127.0.0.1:8000/](http://127.0.0.1:8000/) — главная страница
 - [http://127.0.0.1:8000/api/schema/](http://127.0.0.1:8000/api/schema/)
 -  [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/)
 -  [http://127.0.0.1:8000/api/redoc/](http://127.0.0.1:8000/api/redoc/)
