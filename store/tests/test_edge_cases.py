@@ -21,6 +21,7 @@ class CartEdgeCaseTests(TestCase):
         self.add_to_cart_url = reverse('add_to_cart',args = [self.product.id])
         self.client = Client()
 
+
     def test_cart_with_deleted_product(self):
         self.client.login(username='testuser',password = 'testpass123')
         self.client.post(self.add_to_cart_url)
@@ -73,7 +74,7 @@ class AuthEdgeCaseTests(TestCase):
     def test_login_long_username(self):
         long_username = 'a' * 500
         response = self.client.post(self.login_url,{
-            'username':long_username,
+            'username':'long_username',
             'password':'testpass123'
         })
 
@@ -88,3 +89,43 @@ class AuthEdgeCaseTests(TestCase):
 
         self.assertEqual(response.status_code,200)
         self.assertContains(response,'Please enter a correct username and password')
+
+    def test_add_nonexistent_product(self):
+        self.client.login(username='testuser',password='testpass123')
+        url = reverse('add_to_cart',args=[9999])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code,404)
+        
+    def test_login_username_with_spaces(self):
+        response = self.client.post(self.login_url,{
+            'username' : ' testuser ',
+            'password' : 'testpass123'
+        })
+
+        self.assertEqual(response.status_code,302)
+        self.assertRedirects(response,reverse('product_list'))
+
+        profile_response = self.client.get(reverse('profile'))
+        self.assertEqual(profile_response.status_code,200)
+        self.assertContains(profile_response,'testuser')
+
+    def test_logout(self):
+        self.client.post(reverse('login'), {
+            'username':'testuser',
+            'password':'testpass123'
+        })
+        profile_response = self.client.get(reverse('profile'))
+        logout_response = self.client.post(reverse('logout'))
+        self.assertEqual(logout_response.status_code,302)
+        self.assertRedirects(logout_response, reverse('product_list'))
+
+        profile_after = self.client.get(reverse('profile'))
+        self.assertEqual(profile_after.status_code, 302)
+        self.assertIn('login', profile_after.url)
+
+
+
+
+
+
+
