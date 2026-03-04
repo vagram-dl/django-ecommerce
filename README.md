@@ -17,3 +17,11 @@ pip install -r requirements.txt
 - [http://127.0.0.1:8000/api/schema/](http://127.0.0.1:8000/api/schema/)
 -  [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/)
 -  [http://127.0.0.1:8000/api/redoc/](http://127.0.0.1:8000/api/redoc/)
+
+## Деплой на VPS (Ubuntu) 
+- Установить Python, pip, virtualenv
+- Установить MySQL и создать базу
+- Клонировать проект и установить зависимости
+- Применить миграции и собрать статику
+- Запустить через Gunicorn: gunicorn myproject.wsgi:application
+- Настроить Nginx для отдачи статики из папки staticfiles
