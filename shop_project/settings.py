@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 from django.conf.global_settings import LOGIN_REDIRECT_URL, LOGOUT_REDIRECT_URL
@@ -150,3 +150,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE' : 5,
 }
+
+if os.environ.get('GITHUB_ACTIONS') == 'true':
+    DATABASES ={
+        'default' : {
+            'ENGINE' : 'django.db.backends.sqlite3',
+            'NAME' : ':memory:',
+        }
+    }
