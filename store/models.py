@@ -2,6 +2,10 @@ from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.conf import settings
+import uuid
+from django.db import models,transaction
+from django.core.exceptions import ValidationError
 
 class Category(models.Model):
     name = models.CharField(
@@ -163,5 +167,33 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+class Wallet(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='wallet'
+    )
+    balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Баланс"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Кошелек"
+        verbose_name_plural = "Кошельки"
+
+    def __str__(self):
+        return f"Wallet of {self.user.username} ({self.balance} ₽)"
+
+class Payment(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Ожидает'
+        SUCCESS = 'success', 'Успешно'
+        FAILED = 'failed', 'Ошибка'
+
 
 # Create your models here.
