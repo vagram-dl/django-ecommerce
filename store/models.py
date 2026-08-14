@@ -1,3 +1,5 @@
+from dataclasses import fields
+
 from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
@@ -194,6 +196,46 @@ class Payment(models.Model):
         PENDING = 'pending', 'Ожидает'
         SUCCESS = 'success', 'Успешно'
         FAILED = 'failed', 'Ошибка'
+
+    class Type(models.TextChoices):
+        DEPOSIT = 'deposit','Пополнение'
+        WITHDRAWAL = 'withdraw','Списание (Покупка)'
+
+    idempotency_key = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        db_index=True,
+        verbose_name="Ключ идемпотентности"
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='payments'
+    )
+    amount = models.DecimalField(max_digits=10,decimal_places=2,verbose_name="Сумма")
+    type = models.CharField(max_length=20, choices=Type.choices, verbose_name="Тип операции")
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        verbose_name="Статус"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Платеж",
+        verbose_name_plural = "Платежи"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user','status']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_type_display()} {self.amount} ₽ ({self.get_status_display()})"
 
 
 # Create your models here.
