@@ -19,10 +19,6 @@ class PaymentService:
 
                 if payment_type == Payment.Type.WITHDRAWAL:
                     if wallet.balance < amount:
-                        Payment.objects.create(
-                            user=user, amount=amount, type=payment_type,
-                            idempotency_key=idempotency_key, status = Payment.Status.FAILED
-                        )
                         raise ValidationError("Недостаточно средств на балансе")
                     wallet.balance -= amount
                 elif payment_type == Payment.Type.DEPOSIT:
@@ -32,11 +28,17 @@ class PaymentService:
 
                 payment = Payment.objects.create(
                     user=user, amount=amount, type=payment_type,
-                    idempotency_key=idempotency_key, status = Payment.Status.SUCCESS
+                    idempotency_key=idempotency_key, status=Payment.Status.SUCCESS
                 )
 
                 return payment
 
+        except ValidationError:
+            Payment.objects.create(
+                user=user, amount=amount, type=payment_type,
+                idempotency_key=idempotency_key, status=Payment.Status.FAILED
+            )
+            raise
         except IntegrityError:
             return Payment.objects.get(idempotency_key=idempotency_key)
 
