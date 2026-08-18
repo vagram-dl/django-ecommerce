@@ -1,4 +1,6 @@
 import uuid
+
+from django.contrib.gis.gdal.prototypes.raster import band_io
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -70,3 +72,28 @@ class PaymentServiceTests(TestCase):
 
         self.wallet.refresh_from_db()
         self.assertEqual(self.wallet.balance, 1500)
+
+class PaymentAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='apiuser',password='apipass123')
+        self.wallet = Wallet.objects.create(user=self.user,balance=5000)
+
+        self.refresh = RefreshToken.for_user(self.user)
+        self.client=APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.refresh.access_token}')
+
+        self.payment_url = reverse('payment-api')
+        self.balance_url = reverse('wallet-balance')
+        self.history_url = reverse('payment-history')
+
+    def test_api_deposit_success(self):
+        data = {
+            "amount" : "1000",
+            "type" : "deposit"
+        }
+        response = self.client.post(self.payment_url, data,format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'], "Операция выполнена")
+        self.assertEqual(response.data['payment_status'], "success")
+        self.assertEqual(float(response.data['current_balance']), 6000)
