@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from .serializers import PaymentSerializer
 from .services import PaymentService
 from .models import Wallet, Payment
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class PaymentAPIView(APIView):
@@ -35,7 +36,7 @@ class PaymentAPIView(APIView):
                     "current_balance" : request.user.wallet.balance
 
                 }, status = status.HTTP_201_CREATED)
-            except ValidationError as e:
+            except DjangoValidationError as e:
                 return Response({
                     "error" : str(e)
                 }, status = status.HTTP_400_BAD_REQUEST

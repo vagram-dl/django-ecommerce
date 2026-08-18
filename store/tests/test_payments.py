@@ -100,9 +100,11 @@ class PaymentAPITests(APITestCase):
     def test_api_withdrawal_insufficient_funds(self):
         data = {
             "amount" : 99999,
-            "type" : "withdrawal"
+            "type" : "withdraw",
+            "idempotency_key": str(uuid.uuid4())
         }
         response = self.client.post(self.payment_url,data,format='json')
+
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Недостаточно средств", response.data['error'])
