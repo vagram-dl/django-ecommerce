@@ -97,3 +97,37 @@ class PaymentAPITests(APITestCase):
         self.assertEqual(response.data['payment_status'], "success")
         self.assertEqual(float(response.data['current_balance']), 6000)
 
+    def test_api_withdrawal_insufficient_funds(self):
+        data = {
+            "amount" : 99999,
+            "type" : "withdrawal"
+        }
+        response = self.client.post(self.payment_url,data,format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Недостаточно средств", response.data['error'])
+
+    def test_api_get_balance(self):
+        response = self.client.get(self.balance_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(float(response.data['balance']), 5000.00)
+        self.assertEqual(response.data['currency'], "RUB")
+
+    def test_api_get_history(self):
+        Payment.objects.create(
+            user=self.user, amount=500, type=Payment.Type.DEPOSIT,
+            idempotency_key = uuid.uuid4(), status = Payment.Status.SUCCESS
+        )
+
+        response = self.client.get(self.history_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['total_count'],1)
+        self.assertEqual(float(response.data['payments'][0]['amount']),500.00)
+
+    def test_api_unauthorized_access(self):
+        self.client.credentials()
+
+        response = self.client.get(self.balance_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
