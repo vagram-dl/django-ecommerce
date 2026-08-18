@@ -9,6 +9,6 @@ router.register(r'categories',CategoryViewSet,basename = 'category')
 urlpatterns = [
     path('', include(router.urls)),
     path('payments/', PaymentAPIView.as_view(), name='payment-api'),
-    path('wallet/balance/', WalletBalanceView.as_view(), name='payment_api'),
+    path('wallet/balance/', WalletBalanceView.as_view(), name='wallet-balance'),
     path('payments/history/', PaymentHistoryView.as_view(),name='payment-history'),
 ]

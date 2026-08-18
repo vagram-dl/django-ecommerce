@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib.gis.gdal.prototypes.raster import band_io
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -97,3 +96,4 @@ class PaymentAPITests(APITestCase):
         self.assertEqual(response.data['message'], "Операция выполнена")
         self.assertEqual(response.data['payment_status'], "success")
         self.assertEqual(float(response.data['current_balance']), 6000)
+
