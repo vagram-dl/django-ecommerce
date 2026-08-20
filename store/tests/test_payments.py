@@ -1,5 +1,7 @@
 import uuid
+from unittest import skipIf
 
+from django.conf import settings
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -12,6 +14,8 @@ from store.models import Wallet, Payment
 from store.services import PaymentService
 import threading
 from django.test import TransactionTestCase
+from django.conf import settings
+from unittest import skipIf
 
 class PaymentServiceTests(TestCase):
     def setUp(self):
@@ -153,6 +157,10 @@ class PaymentAPITests(APITestCase):
         self.wallet.refresh_from_db()
         self.assertEqual(float(self.wallet.balance),6000.00)
 
+@skipIf(
+    settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3',
+    "SQLite doesn't support proper row-level locking for concurrency tests"
+)
 class PaymentConcurrencyTests(TransactionTestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='concurrency_user', password= 'testpass123')
