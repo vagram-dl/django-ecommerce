@@ -10,6 +10,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from store.models import Wallet, Payment
 from store.services import PaymentService
+import threading
+from django.test import TransactionTestCase
 
 class PaymentServiceTests(TestCase):
     def setUp(self):
@@ -133,3 +135,55 @@ class PaymentAPITests(APITestCase):
 
         response = self.client.get(self.balance_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_api_idempotency_prevents_duplicate_payment(self):
+        key = str(uuid.uuid4())
+
+        data ={
+            "amount" : 1000,
+            "type" : "deposit",
+            "idempotency_key" : key
+        }
+
+        response1 = self.client.post(self.payment_url,data,format='json')
+        response2 = self.client.post(self.payment_url,data,format='json')
+
+        self.assertEqual(response1.status_code,status.HTTP_201_CREATED)
+        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
+        self.wallet.refresh_from_db()
+        self.assertEqual(float(self.wallet.balance),6000.00)
+
+class PaymentConcurrencyTests(TransactionTestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='concurrency_user', password= 'testpass123')
+        self.wallet = Wallet.objects.create(user=self.user, balance=1000)
+
+    def test_concurrent_withdrawals(self):
+            results = []
+            barrier = threading.Barrier(2)
+
+            def try_withdraw(amount,key):
+                barrier.wait()
+                try:
+                    PaymentService.process_transaction(
+                        user=self.user, amount=amount,payment_type=Payment.Type.WITHDRAWAL,
+                        idempotency_key=key
+                    )
+                    results.append('success')
+                except ValidationError:
+                    results.append('failed')
+
+            t1 = threading.Thread(target=try_withdraw,args=(600, uuid.uuid4()))
+            t2 = threading.Thread(target=try_withdraw,args=(600,uuid.uuid4()))
+
+            t1.start()
+            t2.start()
+
+            t1.join()
+            t2.join()
+
+            self.wallet.refresh_from_db()
+
+            self.assertEqual(self.wallet.balance, 400)
+            self.assertEqual(results.count('success'),1)
+            self.assertEqual(results.count('failed'),1)
